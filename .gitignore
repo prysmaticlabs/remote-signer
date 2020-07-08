@@ -1,0 +1,6 @@
+# Ignore bazel directories
+bazel-*
+
+# IntelliJ
+.idea
+.ijwb
