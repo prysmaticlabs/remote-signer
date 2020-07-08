@@ -34,8 +34,6 @@ type Server struct {
 	listener        net.Listener
 	withCert        string
 	withKey         string
-	jwtKey          string
-	auth0Audience   string
 	credentialError error
 	grpcServer      *grpc.Server
 }
@@ -63,6 +61,7 @@ func (s *Server) Start() {
 	s.listener = lis
 	log.WithField("address", address).Info("RPC rpc listening on port")
 
+	opts := make([]grpc.ServerOption, 0)
 	if s.withCert != "" && s.withKey != "" {
 		creds, err := credentials.NewServerTLSFromFile(s.withCert, s.withKey)
 		if err != nil {
@@ -71,7 +70,7 @@ func (s *Server) Start() {
 		}
 		opts = append(opts, grpc.Creds(creds))
 	} else {
-		log.Warn("You are using an insecure gRPC connection! Provide a certificate and key to connect securely")
+		log.Fatal("You are using an insecure gRPC connection. Provide a certificate and key to connect securely")
 	}
 	s.grpcServer = grpc.NewServer(opts...)
 
