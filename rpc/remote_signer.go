@@ -7,26 +7,56 @@ import (
 	validatorpb "github.com/prysmaticlabs/prysm/proto/validator/accounts/v2"
 	"github.com/prysmaticlabs/prysm/shared/bls"
 	"github.com/prysmaticlabs/remote-signer/keyvault"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
+const blsPublicKeyLength = 48 // 48 byte public keys.
+
+// RemoteSigner capable of signing requests by using
+// BLS secret keys retrieved from a keyvault.
 type RemoteSigner struct {
 	keyVault keyvault.Store
 }
 
+// NewRemoteSigner instantiates a new server instance using
+// a keyvault for retrieving.
 func NewRemoteSigner(ctx context.Context, keyVault keyvault.Store) *RemoteSigner {
 	return &RemoteSigner{
 		keyVault: keyVault,
 	}
 }
 
+// Sign a remote request by retrieving the corresponding secret key for
+// the public key in the request from a keyvault. If we have already signed
+// the data in the request, we return a DENIED signing response.
 func (r *RemoteSigner) Sign(ctx context.Context, req *validatorpb.SignRequest) (*validatorpb.SignResponse, error) {
+	if req.PublicKey == nil {
+		return &validatorpb.SignResponse{
+			Status: validatorpb.SignResponse_FAILED,
+		}, status.Error(codes.InvalidArgument, "Expected public key in request")
+	}
+	if len(req.PublicKey) != blsPublicKeyLength {
+		return &validatorpb.SignResponse{
+				Status: validatorpb.SignResponse_FAILED,
+			}, status.Errorf(
+				codes.InvalidArgument,
+				"Wrong public key byte size: %d, expected %d",
+				len(req.PublicKey),
+				blsPublicKeyLength,
+			)
+	}
 	pubKey, err := bls.PublicKeyFromBytes(req.PublicKey)
 	if err != nil {
-		return nil, err
+		return &validatorpb.SignResponse{
+			Status: validatorpb.SignResponse_FAILED,
+		}, status.Errorf(codes.InvalidArgument, "Could not parse public key: %w", err)
 	}
 	secretKey, err := r.keyVault.GetSecretKey(ctx, pubKey)
 	if err != nil {
-		return nil, err
+		return &validatorpb.SignResponse{
+			Status: validatorpb.SignResponse_FAILED,
+		}, status.Errorf(codes.Internal, "Could not fetch secret key from vault: %w", err)
 	}
 	sig := secretKey.Sign(req.SigningRoot)
 	return &validatorpb.SignResponse{
@@ -35,6 +65,8 @@ func (r *RemoteSigner) Sign(ctx context.Context, req *validatorpb.SignRequest) (
 	}, nil
 }
 
+// ListValidatingPublicKeys retrieves the BLS public keys
+// available for signing in the remote signer.
 func (r *RemoteSigner) ListValidatingPublicKeys(
 	ctx context.Context, _ *ptypes.Empty,
 ) (*validatorpb.ListPublicKeysResponse, error) {

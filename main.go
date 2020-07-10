@@ -3,21 +3,19 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/prysmaticlabs/remote-signer/keyvault"
+	"github.com/prysmaticlabs/remote-signer/keyvault/deterministic"
 	"github.com/prysmaticlabs/remote-signer/rpc"
 	"github.com/sirupsen/logrus"
 )
 
+var log = logrus.WithField("prefix", "main")
+
 var (
-	//allowedOriginsFlag = flag.String(
-	//	"gateway-allowed-origins",
-	//	"*",
-	//	"comma-separated, allowed origins for gateway cors",
-	//)
 	grpcServerHostFlag = flag.String(
 		"grpc-server-host",
 		"127.0.0.1",
@@ -38,56 +36,57 @@ var (
 		"",
 		"/path/to/server.key for secure TLS connections",
 	)
+	keyVaultFlag = flag.String(
+		"keyvault",
+		"deterministic",
+		"Type of keyvault: "+
+			"deterministic (default) | s3 (unimplemented) | hashicorp (unimplemented)",
+	)
+	numDeterministicKeysFlag = flag.Int(
+		"num-deterministic-keys",
+		1,
+		"Number of deterministic keys to generate for a deterministic keyvault",
+	)
 )
 
 func main() {
 	flag.Parse()
 	ctx := context.Background()
-
-	//grpcGatewayAddress := *grpcGatewayAddressFlag
-	//grpcServerAddress := *grpcServerAddressFlag
-	//lis, err := net.Listen("tcp", grpcGatewayAddress)
-	//if err != nil {
-	//	logrus.Errorf("Could not listen to port in Start() %s: %v", grpcServerAddress, err)
-	//}
-
-	//opts := []grpc.ServerOption{}
-	//grpcServer := grpc.NewServer(opts...)
-	//pb.RegisterAPIServer(grpcServer, &server{})
-	//
-	//go func() {
-	//	logrus.WithField("address", grpcGatewayAddress).Info("gRPC server listening on port")
-	//	if err := grpcServer.Serve(lis); err != nil {
-	//		logrus.Errorf("Could not serve gRPC: %v", err)
-	//	}
-	//}()
-
-	//allowedOrigins := []string{*allowedOriginsFlag}
-	//if strings.Contains(*allowedOriginsFlag, ",") {
-	//	allowedOrigins = strings.Split(*allowedOriginsFlag, ",")
-	//}
-	//gatewaySrv := gateway.New(
-	//	ctx,
-	//	grpcGatewayAddress,
-	//	grpcServerAddress,
-	//	nil, /*optional http mux */
-	//	allowedOrigins,
-	//)
-	//gatewaySrv.Start()
 	grpcServerHost := *grpcServerHostFlag
 	grpcServerPort := *grpcServerPortFlag
 	tlsCertPath := *tlsCertPathFlag
 	tlsKeyPath := *tlsKeyPathFlag
+	keyVaultKind := *keyVaultFlag
+	numDeterministicKeys := *numDeterministicKeysFlag
 
 	if tlsCertPath == "" || tlsKeyPath == "" {
 		log.Fatal("Expected --tls-crt-path and --tls-key-path flags for secure connections")
 	}
 
+	// Initialize keyvault kind as specified by user.
+	var vault keyvault.Store
+	var err error
+	switch keyVaultKind {
+	case "deterministic":
+		log.Warn(
+			"You are using a deterministic keyvault (only for reference purposes) " +
+				"DO NOT USE in production",
+		)
+		vault, err = deterministic.NewStore(numDeterministicKeys)
+	default:
+		log.Fatalf("Keyvault kind %s not yet supported", keyVaultKind)
+	}
+	if err != nil {
+		log.Fatalf("Could not initialize keyvault: %w", err)
+	}
+
+	// Initialize new gRPC server.
 	srv := rpc.NewServer(ctx, &rpc.Config{
 		Host:     grpcServerHost,
 		Port:     grpcServerPort,
 		CertFlag: tlsCertPath,
 		KeyFlag:  tlsKeyPath,
+		KeyVault: vault,
 	})
 	srv.Start()
 
