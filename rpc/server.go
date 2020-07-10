@@ -6,6 +6,7 @@ import (
 	"net"
 
 	validatorpb "github.com/prysmaticlabs/prysm/proto/validator/accounts/v2"
+	"github.com/prysmaticlabs/remote-signer/keyvault"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -24,6 +25,7 @@ type Config struct {
 	Port     string
 	CertFlag string
 	KeyFlag  string
+	KeyVault keyvault.Store
 }
 
 // Server defining a gRPC server for the remote signer API.
@@ -37,6 +39,7 @@ type Server struct {
 	withKey         string
 	credentialError error
 	grpcServer      *grpc.Server
+	keyVault        keyvault.Store
 }
 
 // NewServer instantiates a new gRPC server.
@@ -49,11 +52,13 @@ func NewServer(ctx context.Context, cfg *Config) *Server {
 		port:     cfg.Port,
 		withCert: cfg.CertFlag,
 		withKey:  cfg.KeyFlag,
+		keyVault: cfg.KeyVault,
 	}
 }
 
 // Start the gRPC server.
 func (s *Server) Start() {
+	// Setup the gRPC server options and TLS configuration.
 	address := fmt.Sprintf("%s:%s", s.host, s.port)
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
@@ -78,8 +83,11 @@ func (s *Server) Start() {
 	}).Info("Loaded TLS certificates")
 	s.grpcServer = grpc.NewServer(opts...)
 
-	// Register reflection service on gRPC rpc.
-	validatorpb.RegisterRemoteSignerServer(s.grpcServer, &RemoteSigner{})
+	// Instantiate a remote signer server.
+	remoteSigner := NewRemoteSigner(s.ctx, s.keyVault)
+
+	// Register services available for the gRPC server.
+	validatorpb.RegisterRemoteSignerServer(s.grpcServer, remoteSigner)
 	reflection.Register(s.grpcServer)
 
 	go func() {
