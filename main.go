@@ -77,7 +77,7 @@ func main() {
 		log.Fatalf("Keyvault kind %s not yet supported", keyVaultKind)
 	}
 	if err != nil {
-		log.Fatalf("Could not initialize keyvault: %w", err)
+		log.Fatalf("Could not initialize keyvault: %v", err)
 	}
 
 	// Initialize new gRPC server.
