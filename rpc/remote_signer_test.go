@@ -10,7 +10,6 @@ import (
 	ptypes "github.com/gogo/protobuf/types"
 	validatorpb "github.com/prysmaticlabs/prysm/proto/validator/accounts/v2"
 	"github.com/prysmaticlabs/prysm/shared/bls"
-
 	"github.com/prysmaticlabs/remote-signer/keyvault"
 )
 

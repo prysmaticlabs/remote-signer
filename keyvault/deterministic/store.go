@@ -4,7 +4,7 @@ purely deterministic keyvault used by this remote signer server
 for demonstration purposes.
 
 WARN: This is a toy implementation that returns deterministic BLS12-381
-secret+public key pairs, NOT MEAN FOR PRODUCTION.
+secret+public key pairs, NOT MEANT FOR PRODUCTION.
 */
 package deterministic
 
