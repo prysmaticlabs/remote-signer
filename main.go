@@ -39,13 +39,13 @@ var (
 	keyVaultFlag = flag.String(
 		"keyvault",
 		"deterministic",
-		"Type of keyvault: "+
+		"Type of keyvault. Examples: "+
 			"deterministic (default) | s3 (unimplemented) | hashicorp (unimplemented)",
 	)
 	numDeterministicKeysFlag = flag.Int(
 		"num-deterministic-keys",
 		1,
-		"Number of deterministic keys to generate for a deterministic keyvault",
+		"Number of deterministic keys to generate for a deterministic keyvault (demonstrative purposes)",
 	)
 )
 

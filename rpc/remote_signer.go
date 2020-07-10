@@ -50,14 +50,15 @@ func (r *RemoteSigner) Sign(ctx context.Context, req *validatorpb.SignRequest) (
 	if err != nil {
 		return &validatorpb.SignResponse{
 			Status: validatorpb.SignResponse_FAILED,
-		}, status.Errorf(codes.InvalidArgument, "Could not parse public key: %w", err)
+		}, status.Errorf(codes.InvalidArgument, "Could not parse public key: %v", err)
 	}
 	secretKey, err := r.keyVault.GetSecretKey(ctx, pubKey)
 	if err != nil {
 		return &validatorpb.SignResponse{
 			Status: validatorpb.SignResponse_FAILED,
-		}, status.Errorf(codes.Internal, "Could not fetch secret key from vault: %w", err)
+		}, status.Errorf(codes.Internal, "Could not fetch secret key from vault: %v", err)
 	}
+	// TODO: Handle naive slashing protection.
 	sig := secretKey.Sign(req.SigningRoot)
 	return &validatorpb.SignResponse{
 		Signature: sig.Marshal(),
@@ -72,7 +73,7 @@ func (r *RemoteSigner) ListValidatingPublicKeys(
 ) (*validatorpb.ListPublicKeysResponse, error) {
 	pubKeys, err := r.keyVault.GetPublicKeys(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "Could not retrieve public keys: %v", err)
 	}
 	rawKeys := make([][]byte, len(pubKeys))
 	for i, k := range pubKeys {
