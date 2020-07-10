@@ -1,0 +1,1 @@
+![Go](https://github.com/prysmaticlabs/remote-signer/workflows/Go/badge.svg?branch=master)
