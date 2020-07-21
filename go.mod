@@ -10,4 +10,4 @@ require (
 	google.golang.org/grpc v1.30.0
 )
 
-replace github.com/ethereum/go-ethereum => github.com/prysmaticlabs/bazel-go-ethereum v0.0.0-20200626171358-a933315235ec
+replace github.com/ethereum/go-ethereum => github.com/prysmaticlabs/bazel-go-ethereum 82ea6953710d
