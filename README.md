@@ -34,7 +34,7 @@ Available parameters:
 - **--keyvault**: (required) type of [keyvault](https://github.com/prysmaticlabs/remote-signer/blob/master/keyvault/vault.go) to retrieve secret keys from, either: deterministic (default and unsafe) | s3 (unimplemented) | hashicorp (unimplemented)
 - **--num-deterministic-keys**: number of deterministic keys to generate if using a deterministic keyvault
 
-For local testing, an example TLS cert key files are provided: [example-server.crt](https://github.com/prysmaticlabs/remote-signer/blob/master/example-server.crt) and [example-server.key](https://github.com/prysmaticlabs/remote-signer/blob/master/example-server.key). It is recommended you create your own TLS certificates using a tool such as [openssl](https://www.openssl.org/) or obtain new ones from a trusted certificate authority.
+For local testing, example TLS cert key files for `localhost` are provided: [example-server.crt](https://github.com/prysmaticlabs/remote-signer/blob/master/example-server.crt) and [example-server.key](https://github.com/prysmaticlabs/remote-signer/blob/master/example-server.key) and [ca.crt](https://github.com/prysmaticlabs/remote-signer/blob/master/ca.crt). It is recommended you create your own TLS certificates using a tool such as [openssl](https://www.openssl.org/) or obtain new ones from a trusted certificate authority. For a tutorial on how to generate these certs for our use case, please see [securing your gRPC connection](https://docs.prylabs.network/docs/prysm-usage/secure-grpc) in our documentation portal.
 
 ```bash
 $ go build -o server
