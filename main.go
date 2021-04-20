@@ -105,16 +105,17 @@ func main() {
 		)
 
 		if mnemonicFile == "" {
-			log.Fatal("You must provide a --mnemonic-file")
+			log.Info("You must provide a --mnemonic-file")
+			return
 		}
 
 		content, err := ioutil.ReadFile(mnemonicFile)
 		if err != nil {
-			logrus.Info("File reading error", err)
+			log.Info("File reading error", err)
 			return
 		}
 		mnemonicPhrase := string(content)
-		logrus.Info("Contents of file: ", mnemonicPhrase)
+		log.Info("Contents of file: ", mnemonicPhrase)
 
 		vault, err = mnemonic.NewStore(
 			mnemonicPhrase,
@@ -145,7 +146,7 @@ func main() {
 		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
 		defer signal.Stop(sigc)
 		<-sigc
-		logrus.Info("Got interrupt, shutting down...")
+		log.Info("Got interrupt, shutting down...")
 		if err := srv.Stop(); err != nil {
 			log.Fatal(err)
 		}
