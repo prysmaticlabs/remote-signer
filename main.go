@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"flag"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/prysmaticlabs/remote-signer/keyvault"
 	"github.com/prysmaticlabs/remote-signer/keyvault/deterministic"
+	"github.com/prysmaticlabs/remote-signer/keyvault/mnemonic"
 	"github.com/prysmaticlabs/remote-signer/rpc"
 	"github.com/sirupsen/logrus"
 )
@@ -40,12 +42,32 @@ var (
 		"keyvault",
 		"deterministic",
 		"Type of keyvault. Examples: "+
-			"deterministic (default) | s3 (unimplemented) | hashicorp (unimplemented)",
+			"deterministic (default) | mnemonic | s3 (unimplemented) | hashicorp (unimplemented)",
 	)
 	numDeterministicKeysFlag = flag.Int(
 		"num-deterministic-keys",
 		1,
 		"Number of deterministic keys to generate for a deterministic keyvault (demonstrative purposes)",
+	)
+	numMnemonicKeysFlag = flag.Int(
+		"num-mnemonic-keys",
+		1,
+		"Number of keys to generate from a mnemonic phrase",
+	)
+	startIndexForMnemonicFlag = flag.Int(
+		"start-index",
+		0,
+		"Start index for mnemonic keys generation",
+	)
+	mnemonicFileFlag = flag.String(
+		"mnemonic-file",
+		"",
+		"Path to the mnemonic file, containing the mnemonic phrase",
+	)
+	mnemonicPasswordFlag = flag.String(
+		"mnemonic-password",
+		"",
+		"Password of the mnemonic phrase",
 	)
 )
 
@@ -58,6 +80,10 @@ func main() {
 	tlsKeyPath := *tlsKeyPathFlag
 	keyVaultKind := *keyVaultFlag
 	numDeterministicKeys := *numDeterministicKeysFlag
+	numMnemonicKeys := *numMnemonicKeysFlag
+	startIndexForMnemonic := *startIndexForMnemonicFlag
+	mnemonicFile := *mnemonicFileFlag
+	mnemonicPassword := *mnemonicPasswordFlag
 
 	if tlsCertPath == "" || tlsKeyPath == "" {
 		log.Fatal("Expected --tls-crt-path and --tls-key-path flags for secure connections")
@@ -73,6 +99,29 @@ func main() {
 				"DO NOT USE in production",
 		)
 		vault, err = deterministic.NewStore(numDeterministicKeys)
+	case "mnemonic":
+		log.Warn(
+			"Using a mnemonic to recover keys from",
+		)
+
+		if mnemonicFile == "" {
+			log.Info("You must provide a --mnemonic-file")
+			return
+		}
+
+		content, err := ioutil.ReadFile(mnemonicFile)
+		if err != nil {
+			log.Info("File reading error", err)
+			return
+		}
+		mnemonicPhrase := string(content)
+		log.Info("Contents of file: ", mnemonicPhrase)
+
+		vault, err = mnemonic.NewStore(
+			mnemonicPhrase,
+			mnemonicPassword,
+			startIndexForMnemonic,
+			numMnemonicKeys)
 	default:
 		log.Fatalf("Keyvault kind %s not yet supported", keyVaultKind)
 	}
@@ -97,7 +146,7 @@ func main() {
 		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
 		defer signal.Stop(sigc)
 		<-sigc
-		logrus.Info("Got interrupt, shutting down...")
+		log.Info("Got interrupt, shutting down...")
 		if err := srv.Stop(); err != nil {
 			log.Fatal(err)
 		}

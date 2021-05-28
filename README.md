@@ -31,13 +31,22 @@ Available parameters:
 - **--grpc-port**: (required) port for the gRPC server, default 4000
 - **--tls-crt-path**: (required) /path/to/server.crt for secure TLS connections
 - **--tls-key-path**: (required) /path/to/server.key for secure TLS connections
-- **--keyvault**: (required) type of [keyvault](https://github.com/prysmaticlabs/remote-signer/blob/master/keyvault/vault.go) to retrieve secret keys from, either: deterministic (default and unsafe) | s3 (unimplemented) | hashicorp (unimplemented)
+- **--keyvault**: (required) type of [keyvault](https://github.com/prysmaticlabs/remote-signer/blob/master/keyvault/vault.go) to retrieve secret keys from, either: deterministic (default and unsafe) | mnemonic | s3 (unimplemented) | hashicorp (unimplemented)
 - **--num-deterministic-keys**: number of deterministic keys to generate if using a deterministic keyvault
+- **--num-mnemonic-keys**: number of keys to generate if using a mnemonic keyvault
+- **--start-index**: starting index to generate the keys if using a mnemonic keyvault
+- **--mnemonic-file**: file where mnemonic is placed if using a mnemonic keyvault
+- **--mnemonic-password**: password of the mnemonic file if using a mnemonic keyvault
 
 For local testing, example TLS cert key files for `localhost` are provided: [example-server.crt](https://github.com/prysmaticlabs/remote-signer/blob/master/example-server.crt) and [example-server.key](https://github.com/prysmaticlabs/remote-signer/blob/master/example-server.key) and [ca.crt](https://github.com/prysmaticlabs/remote-signer/blob/master/ca.crt). It is recommended you create your own TLS certificates using a tool such as [openssl](https://www.openssl.org/) or obtain new ones from a trusted certificate authority. For a tutorial on how to generate these certs for our use case, please see [securing your gRPC connection](https://docs.prylabs.network/docs/prysm-usage/secure-grpc) in our documentation portal.
 
 ```bash
 $ go build -o server
+```
+
+### `deterministic` keyvault
+
+```bash
 $ ./server --tls-crt-path=./example-server.crt --tls-key-path=./example-server.key
 ```
 
@@ -47,6 +56,30 @@ Will output:
 INFO[0000] Loaded TLS certificates                       crt-path=./example-server.crt key-path=./example-server.key prefix=rpc
 INFO[0000] gRPC server listening on address              address="127.0.0.1:4000" prefix=rpc
 ```
+
+
+### `mnemonic` keyvault
+
+Note that mnemonic and private keys are logged, making this tool useful for tests and debugging but not meant for production.
+
+```bash
+./server --tls-crt-path=example-server.crt --tls-key-path=example-server.key --keyvault=mnemonic --num-mnemonic-keys=3 --start-index=0 --mnemonic-file=sample-mnemonic.txt
+```
+
+Will output:
+```text
+INFO[0000] Contents of file: voice gospel easy verb front diesel sense worth sword equip giggle jeans shoe defy kid degree van frost like blush chef silk spoil obtain
+INFO[0000] Generating keys from mnemonic                 prefix=mnemonic-keyvault
+INFO[0000] Key from mnemonic at index 0, b2e17b5de68f5e929425028437daf3df6a6e7c9332c0cdbb9eb99d1cc115a56afd73b8fd04e8a1d11e53eb75b54d4176  prefix=mnemonic-keyvault
+INFO[0000] Private Key from mnemonic 0, 2898511c2a36206a5a8e5c67dfb3549c8020edb0f4d855aa2f65106e720dce73  prefix=mnemonic-keyvault
+INFO[0000] Key from mnemonic at index 1, a7d1d71d5e45f328ad5744341fa7a8f773fcaf3881c9b417479015f6f18326b702f1e13ce385cf0dc5db5558955a0e6e  prefix=mnemonic-keyvault
+INFO[0000] Private Key from mnemonic 1, 1ecba74f354aac4c8563c69499b48846edb827953252223138a317802d9dbc10  prefix=mnemonic-keyvault
+INFO[0000] Key from mnemonic at index 2, a2ec0b1deff9e6766a80c5e91130499fd00b5db6b607d3cf3b37e51423a8f32097c7fc69dd63d0a8cf14e17d491b0cec  prefix=mnemonic-keyvault
+INFO[0000] Private Key from mnemonic 2, 6894d7f91519372074b475c50c65ff52c6870611c90a5e72c32975a97537960f  prefix=mnemonic-keyvault
+INFO[0000] Loaded TLS certificates                       crt-path=example-server.crt key-path=example-server.key prefix=rpc
+INFO[0000] gRPC server listening on address              address="127.0.0.1:4000" prefix=rpc
+```
+
 
 ## Extending the Remote Signer
 
