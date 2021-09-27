@@ -11,7 +11,7 @@ package keyvault
 import (
 	"context"
 
-	"github.com/prysmaticlabs/prysm/shared/bls"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 )
 
 // Store defines a struct which has capabilities of retrieving

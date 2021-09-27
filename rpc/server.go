@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	validatorpb "github.com/prysmaticlabs/prysm/proto/validator/accounts/v2"
+	validatorpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1/validator-client"
 	"github.com/prysmaticlabs/remote-signer/keyvault"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
