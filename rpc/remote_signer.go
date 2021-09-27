@@ -3,9 +3,9 @@ package rpc
 import (
 	"context"
 
-	ptypes "github.com/gogo/protobuf/types"
-	validatorpb "github.com/prysmaticlabs/prysm/proto/validator/accounts/v2"
-	"github.com/prysmaticlabs/prysm/shared/bls"
+	emptypb "github.com/golang/protobuf/ptypes/empty"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+	validatorpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1/validator-client"
 	"github.com/prysmaticlabs/remote-signer/keyvault"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -69,7 +69,7 @@ func (r *RemoteSigner) Sign(ctx context.Context, req *validatorpb.SignRequest) (
 // ListValidatingPublicKeys retrieves the BLS public keys
 // available for signing in the remote signer.
 func (r *RemoteSigner) ListValidatingPublicKeys(
-	ctx context.Context, _ *ptypes.Empty,
+	ctx context.Context, _ *emptypb.Empty,
 ) (*validatorpb.ListPublicKeysResponse, error) {
 	pubKeys, err := r.keyVault.GetPublicKeys(ctx)
 	if err != nil {

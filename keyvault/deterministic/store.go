@@ -13,9 +13,9 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/prysmaticlabs/prysm/shared/bls"
-	"github.com/prysmaticlabs/prysm/shared/bytesutil"
-	"github.com/prysmaticlabs/prysm/shared/interop"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
+	"github.com/prysmaticlabs/prysm/runtime/interop"
 	"github.com/sirupsen/logrus"
 )
 

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	ptypes "github.com/gogo/protobuf/types"
-	validatorpb "github.com/prysmaticlabs/prysm/proto/validator/accounts/v2"
-	"github.com/prysmaticlabs/prysm/shared/bls"
+	emptypb "github.com/golang/protobuf/ptypes/empty"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+	validatorpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1/validator-client"
 	"github.com/prysmaticlabs/remote-signer/keyvault"
 )
 
@@ -22,7 +22,7 @@ func (m *mockKeyVault) GetSecretKey(context.Context, bls.PublicKey) (bls.SecretK
 	if m.wantErr {
 		return nil, errors.New("failed")
 	}
-	return bls.RandKey(), nil
+	return bls.RandKey()
 }
 
 func (m *mockKeyVault) GetPublicKeys(context.Context) ([]bls.PublicKey, error) {
@@ -85,7 +85,7 @@ func TestRemoteSigner_Sign(t *testing.T) {
 				wantErr: true,
 			},
 			req: &validatorpb.SignRequest{
-				PublicKey: bls.RandKey().Marshal(),
+				PublicKey: randKey().Marshal(),
 			},
 			want:    validatorpb.SignResponse_FAILED,
 			wantErr: true,
@@ -94,7 +94,7 @@ func TestRemoteSigner_Sign(t *testing.T) {
 			name:     "Succeeds with proper request",
 			keyVault: &mockKeyVault{},
 			req: &validatorpb.SignRequest{
-				PublicKey:   bls.RandKey().PublicKey().Marshal(),
+				PublicKey:   randKey().PublicKey().Marshal(),
 				SigningRoot: make([]byte, 32),
 			},
 			want:    validatorpb.SignResponse_SUCCEEDED,
@@ -122,7 +122,7 @@ func TestRemoteSigner_ListValidatingPublicKeys(t *testing.T) {
 	r := &RemoteSigner{
 		keyVault: &mockKeyVault{wantErr: true},
 	}
-	_, err := r.ListValidatingPublicKeys(ctx, &ptypes.Empty{})
+	_, err := r.ListValidatingPublicKeys(ctx, &emptypb.Empty{})
 	if err == nil {
 		t.Fatal("Wanted error, received nil")
 	}
@@ -132,13 +132,13 @@ func TestRemoteSigner_ListValidatingPublicKeys(t *testing.T) {
 	}
 	keys := make([]bls.PublicKey, 10)
 	for i := 0; i < len(keys); i++ {
-		keys[i] = bls.RandKey().PublicKey()
+		keys[i] = randKey().PublicKey()
 	}
 	r.keyVault = &mockKeyVault{
 		pubKeys: keys,
 		wantErr: false,
 	}
-	res, err := r.ListValidatingPublicKeys(ctx, &ptypes.Empty{})
+	res, err := r.ListValidatingPublicKeys(ctx, &emptypb.Empty{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,4 +153,12 @@ func TestRemoteSigner_ListValidatingPublicKeys(t *testing.T) {
 			t.Errorf("Wanted %#x, received %#x", wantedKey, receivedKey)
 		}
 	}
+}
+
+func randKey() bls.SecretKey {
+	k, err := bls.RandKey()
+	if err != nil {
+		panic(err)
+	}
+	return k
 }

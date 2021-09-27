@@ -11,8 +11,8 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"github.com/prysmaticlabs/prysm/shared/bls"
-	"github.com/prysmaticlabs/prysm/shared/bytesutil"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
 	"github.com/sirupsen/logrus"
 
 	"github.com/prysmaticlabs/prysm/validator/accounts/wallet"

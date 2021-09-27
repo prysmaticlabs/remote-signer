@@ -11,7 +11,7 @@ Remote signing gRPC server reference implementation for the [Prysm](https://gith
 
 This is a simple, remote signing reference implementation to be used with the [Prysm](https://github.com/prysmaticlabs/prysm) project. It is **not** meant to be used in production deployments, but instead as an example of how to create a minimal remote-signer for eth2 validator keys in Go.
 
-- Exposes a gRPC server implementation of the [RemoteSigner](https://github.com/prysmaticlabs/prysm/blob/master/proto/validator/accounts/v2/keymanager.proto) service defined in Prysm secured by TLS certificates
+- Exposes a gRPC server implementation of the [RemoteSigner](https://github.com/prysmaticlabs/prysm/blob/develop/proto/prysm/v1alpha1/validator-client/keymanager.proto) service defined in Prysm secured by TLS certificates
 - Exposes a gRPC gateway for JSON-HTTP requests to server 
 - Allows for pluggable implementations different ways to load eth2 validator private keys, making it easy to integrate secure enclaves such as [Hashicorp Vault](https://learn.hashicorp.com/vault)
 

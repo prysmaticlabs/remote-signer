@@ -4,3 +4,9 @@ bazel-*
 # IntelliJ
 .idea
 .ijwb
+
+# Built binary
+remote-signer
+
+# test data
+keyvault/mnemonic/accounts/all-accounts.keystore.json
