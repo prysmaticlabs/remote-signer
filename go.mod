@@ -3,7 +3,6 @@ module github.com/prysmaticlabs/remote-signer
 go 1.14
 
 require (
-	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/kr/text v0.2.0 // indirect
 	github.com/pkg/errors v0.9.1
